@@ -17,8 +17,8 @@
 #' py$stop()
 #' }
 
-proc_python <- function(port = 6011){
-  if (Sys.which('python') == '') stop('Python was not installed or not in PATH')
+proc_python <- function(python_exec = 'python', port = 6011){
+  if (Sys.which(python_exec) == '') stop('Python executable is not installed or not in PATH')
   started <- FALSE
   sep = rand_string()
   exec_code = function(...){
@@ -39,8 +39,9 @@ proc_python <- function(port = 6011){
       token = tempfile()
       on.exit(unlink(token))
       python_sock = system.file('lang', 'python_socket.py', package = 'runr')
-      system(sprintf('python %s %s %s %s', shQuote(python_sock),
-                     port, shQuote(token), sep), wait = FALSE)
+      system(sprintf('%s %s %s %s %s', shQuote(python_exec),
+                     shQuote(python_sock), port, shQuote(token), sep),
+                     wait = FALSE)
       started <<- TRUE
       invisible()
     },
