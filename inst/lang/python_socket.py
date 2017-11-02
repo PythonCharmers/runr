@@ -66,7 +66,7 @@ def stdoutIO(stdout=None):
     '''
     old = sys.stdout
     if stdout is None:
-        stdout = BytesIO.BytesIO()
+        stdout = BytesIO()
     sys.stdout = stdout
     yield stdout
     sys.stdout = old
