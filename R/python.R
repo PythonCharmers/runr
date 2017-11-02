@@ -17,7 +17,7 @@
 #' py$stop()
 #' }
 
-proc_python <- function(python_exec = 'python', port = 6011){
+proc_python <- function(port = 6011, python_exec = 'python'){
   if (Sys.which(python_exec) == '') stop('Python executable is not installed or not in PATH')
   started <- FALSE
   sep = rand_string()

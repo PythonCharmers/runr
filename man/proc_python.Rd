@@ -3,7 +3,7 @@
 \alias{proc_python}
 \title{Run a Python process}
 \usage{
-proc_python(python_exec = 'python', port = 6011)
+proc_python(port = 6011, python_exec = 'python')
 }
 \arguments{
 \item{port}{A TCP port number}
