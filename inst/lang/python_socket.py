@@ -76,10 +76,14 @@ while True:
     ### wait to accept a connection
     conn, addr = s.accept() # Connected with  + addr[0] + str(addr[1])
     input_data = conn.recv(1024000)
-    if re.sub('\s', '', input_data) == 'quit()':
-        break
+    try:
+        input_decoded = input_data.encode('ascii')
+        if re.sub('\s', '', input_decoded) == 'quit()':
+            break
+    except:
+        pass
     ### write the codes into a file
-    with open(token_file, 'w') as f:
+    with open(token_file, 'wb') as f:
         f.write(input_data)
     ### print codes; execute codes
     with stdoutIO() as output:
