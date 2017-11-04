@@ -7,12 +7,33 @@ import contextlib
 import traceback
 import sys
 import re
-from io import BytesIO
+import inspect
+from io import StringIO
+from collections import Mapping
 
 
-# Compatibility shim for Py2/3
 PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
 
+# Implementation of exec_ is from ``six``:
+if PY3:
+    import builtins
+    exec_ = getattr(builtins, "exec")
+else:
+    def exec_(code, globs=None, locs=None):
+        """Execute code in a namespace."""
+        if globs is None:
+            frame = sys._getframe(1)
+            globs = frame.f_globals
+            if locs is None:
+                locs = frame.f_locals
+            del frame
+        elif locs is None:
+            locs = globs
+        exec("""exec code in globs, locs""")
+
+
+# Compatibility shim for Py2/3 from python-future
 if not PY2:
     # execfile definition is from `future` package: see
     # http://python-future.org
@@ -40,7 +61,6 @@ if not PY2:
         exec_(code, myglobals, mylocals)
 
 
-
 script, PORT, token_file, sep = sys.argv
 
 ##### set up a server
@@ -55,7 +75,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 try:
     s.bind((HOST, PORT))
 except socket.error as msg:
-    print('Bind failed. Error Code : ' + str(msg[0]) + '; Message: ' + msg[1])
+    print('Bind failed. Error Code : ' + str(msg.errno) + '; Message: ' + msg.strerror)
     quit()
 s.listen(10) # Socket now listening
 
@@ -66,7 +86,7 @@ def stdoutIO(stdout=None):
     '''
     old = sys.stdout
     if stdout is None:
-        stdout = BytesIO()
+        stdout = StringIO()
     sys.stdout = stdout
     yield stdout
     sys.stdout = old
@@ -77,10 +97,10 @@ while True:
     conn, addr = s.accept() # Connected with  + addr[0] + str(addr[1])
     input_data = conn.recv(1024000)
     try:
-        input_decoded = input_data.encode('ascii')
+        input_decoded = input_data.decode('ascii')
         if re.sub('\s', '', input_decoded) == 'quit()':
             break
-    except:
+    except Exception as e:
         pass
     ### write the codes into a file
     with open(token_file, 'wb') as f:
@@ -95,9 +115,10 @@ while True:
             traceback.print_exc()
     ### send output
     output_data = output.getvalue()
-    conn.send(output_data)
+    conn.send(output_data.encode('utf-8'))
     conn.close()
 ###### close & quit
 conn.close()
-s.shutdown(2)
+# This raises an OSError: "socket is not connected":
+# s.shutdown(socket.SHUT_RDWR)
 s.close()
