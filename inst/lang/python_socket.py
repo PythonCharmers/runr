@@ -107,7 +107,12 @@ while True:
         f.write(input_data)
     ### print codes; execute codes
     with stdoutIO() as output:
-        print(input_data)
+        # print(input_data)
+        try:
+            input_decoded = input_data.decode('utf-8')
+            print(input_decoded)
+        except Exception as e:
+            print(e)
         print(sep)
         try:
             execfile(token_file)
